@@ -1,0 +1,125 @@
+clear all
+clc
+close all
+%% Momentum Configuration Benchmark
+% 2023-April-20
+% velocity driven unicycle
+
+% state = [X Y th]
+vmax = 10; %m/s
+vmin = 0.0;
+rho_min = 2.0;
+omega_max = vmax/rho_min;
+
+%% Generate halton samples
+n = 7; % number of samples
+dim = 2; 
+
+xmin = vmin; xmax = vmax; % forward vel
+ymin = -omega_max; ymax = omega_max; % torque
+
+p = haltonset(dim);
+p = net(p,n)
+
+
+p(:,1) = xmin +(xmax-xmin)*p(:,1);
+p(:,2) = ymin + (ymax-ymin)*p(:,2);
+
+
+figure()
+    plot(p(:,1),p(:,2),'o','MarkerSize',10,'MarkerFaceColor','r');
+    xlabel('Vel(m/s)')  
+    ylabel('\omega(rad/s)')
+    grid on
+    vs = 0:0.01:vmax;
+    w_limit = (1/rho_min)*vs;
+    hold on
+    plot(vs,w_limit);
+    hold on
+    plot(vs,-w_limit);
+
+vsamples = [0.1*vmax 0.5*vmax vmax];
+control_input = [];
+
+for k = 1:length(vsamples)
+    vel_input = vsamples(k);
+    w_max = (1/rho_min)*vel_input;
+    wsamples = [-w_max 0 w_max];
+
+    new_inputs = [vel_input*ones(1,length(wsamples))' wsamples'];
+ 
+    control_input = [control_input;new_inputs];
+end
+
+figure()
+    plot(control_input(:,1),control_input(:,2),'o','MarkerSize',10,'MarkerFaceColor','r');
+    xlabel('Vel(m/s)')  
+    ylabel('\omega(rad/s)')
+    grid on
+    vs = 0:0.01:vmax;
+    w_limit = (1/rho_min)*vs;
+    hold on
+    plot(vs,w_limit,'k');
+    hold on
+    plot(vs,-w_limit,'k');
+
+
+
+%% Simulate vehicle motion with the provided samples
+% this could be useful for debugging.
+
+
+%q = [X Y th]; 
+q0 = [0 0 0];
+tspan = [0:0.01:0.2];
+params = [];
+
+figure()
+[m,n]= size(control_input);
+for iter = 1:m
+        
+    u = [control_input(iter,1);control_input(iter,2)];
+    [t,q] = ode45(@(t,q)myUnicycleKinematics(t,q,u,params),tspan,q0);
+
+    hold on
+    plot(q(:,1),q(:,2))
+    xlabel('X(m)')
+    ylabel('Y(m)')
+
+    axis equal
+    grid on
+end
+
+
+
+
+%% Parameters
+
+runs = 1;
+
+params = struct;
+params.max_iterations = 100000;
+params.max_generations = 100;
+params.horizon_time = 0.015;
+params.num_states = 3;
+params.num_controls = 2;
+params.grid_resolution = [0.1; 0.1; 5*pi/180];
+
+params.start_state = [0; 0; 0];
+params.goal_state =  [10; 4; 0]; 
+params.branchout_factor = m;
+params.branchouts = control_input;
+% params.branchouts = [
+%     [p(1,1); p(1,2)], ...
+%     [p(2,1); p(2,2)], ...
+%     [p(3,1); p(3,2)], ...
+%     [p(4,1); p(4,2)], ...
+%     [p(5,1); p(5,2)], ...
+%     [p(6,1); p(6,2)], ...
+%     [p(7,1); p(7,2)], ...
+%     [p(8,1); p(8,2)], ...
+%     [p(9,1); p(9,2)]
+%     ];
+%% Write config file
+
+sbmpo_config("../csv/config.csv", params, runs);

@@ -1,4 +1,8 @@
-#include <my_project/MomentumModel.hpp>
+
+#include <my_project/MomentumModelUnicycle.hpp>
+//#include <my_project/MomentumModelUnicycleKinematics.hpp>
+
+
 #include <sbmpo_benchmarking/benchmark.hpp>
 
 using namespace sbmpo;
@@ -22,7 +26,8 @@ int main (int argc, char ** argv) {
 */
 
     // Create new benchmark
-    Benchmark<MomentumModel> benchmarker(csv_folder);
+    Benchmark<MomentumModelUnicycle> benchmarker(csv_folder);
+    //Benchmark<MomentumModelUnicycleKinematics> benchmarker(csv_folder);
 
     // Run benchmark on the model (saves to csv folder)
     benchmarker.benchmark();

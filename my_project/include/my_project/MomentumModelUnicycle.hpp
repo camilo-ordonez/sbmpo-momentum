@@ -23,15 +23,21 @@ class MomentumModelUnicycle : public Model {
     
     MomentumModelUnicycle(){
 
-        threshold_X_ = 0.01f;
-        threshold_Y_ = 0.01f;
-        //threshold_th_ = 5.0f;
-        threshold_V_ = 0.01f;
+       // threshold_X_ = 0.01f;
+       // threshold_Y_ = 0.01f;
+
+        threshold_X_ = 1.0f;
+        threshold_Y_ = 1.0f;
+
+        threshold_V_ = 1.0f;
               
+        max_acc_ = 2.0f;
+        min_acc_ = -2.0f;
+
         min_vel_ = -2.0f;
-        max_vel_ = 2.0f;
-        mass_ = 1.0f;
-        I_ = 1.0f;
+        max_vel_ = 10.0f;
+        mass_ = 500.0f;
+        I_ = 5.0f;
         g_ = 9.8f;
         r_ = 0.2;
 
@@ -76,14 +82,17 @@ class MomentumModelUnicycle : public Model {
 
         next_state[X] += state[dX]*time_span + 0.5*accX*time_span*time_span; 
         next_state[Y] += state[dY]*time_span + 0.5*accY*time_span*time_span; 
-        next_state[th] += state[dth]*time_span + 0.5*d2th*time_span*time_span;       
+        next_state[th] += state[dth]*time_span + 0.5*d2th*time_span*time_span;      
+        next_state[th] = atan2(sin(next_state[th]),cos(next_state[th])); 
 
         next_state[dX] += accX*time_span;
         next_state[dY] += accY*time_span;
         next_state[dth] += d2th*time_span;
     
         next_state[V] += dvx*time_span;
-                            
+
+
+        //std::cout<<"X:"<<next_state[X]<<std::endl;                    
        
         // --- sample accel  
         /*
@@ -180,7 +189,7 @@ class MomentumModelUnicycle : public Model {
             i.e Boundary constraints, Obstacles, State limits
         */
 
-      
+      /*
         if( (state[X]>= -5.0) && (state[X] <= 5.0) && (state[Y]>= -5.0) && (state[Y] <= 5.0)  ){
 
             return true;
@@ -190,7 +199,8 @@ class MomentumModelUnicycle : public Model {
             
             return false;
         }
-
+*/
+    return true;
  
 
     }

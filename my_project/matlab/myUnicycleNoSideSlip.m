@@ -1,10 +1,10 @@
-function dq = myUnicycleNoSideSlip(t,q,params);
+function dq = myUnicycleNoSideSlip(t,q,u,params);
 
 %q = [X Y th dX dY dth vx]; 
 %dq = [dX dY dth d2X d2Y d2th dvx];
 
-Fx = 2;
-tau = 0.1;
+Fx = u(1);
+tau = u(2);
 
 m = params.m;
 I = params.I;
@@ -21,7 +21,7 @@ M = [m 0 0;0 0 1; 0 I 0];
 B = [Fx - b*vx;dth*vx;tau-bz*dth];
 tmp = inv(M)*B;
 
-dvx = tmp(1); 
+dvx = tmp(1);
 d2th = tmp(2);
 Fy = tmp(3); % constraint force
 vy = 0; % no side slip

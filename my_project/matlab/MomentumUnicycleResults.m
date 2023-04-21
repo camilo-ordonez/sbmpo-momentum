@@ -1,0 +1,89 @@
+% Momentum
+
+
+close all
+
+stats = sbmpo_stats("/home/camilo/Desktop/sbmpo-momentum/my_project_ws/my_project/csv/stats.csv");
+[path, nodes] = sbmpo_results("/home/camilo/Desktop/sbmpo-momentum/my_project_ws/my_project/csv/nodes.csv");
+%% Path
+
+t = zeros(1, path.path_size);
+x = zeros(1, path.path_size);
+y = zeros(1, path.path_size);
+th = zeros(1, path.path_size);
+dx = zeros(1,path.path_size);
+dy = zeros(1,path.path_size);
+dth = zeros(1,path.path_size);
+v = zeros(1,path.path_size);
+
+u = zeros(2, path.path_size-1);
+for nd = 1:path.path_size
+    t(nd) = path.nodes(nd).g;
+    x(nd) = path.nodes(nd).state(1);
+    y(nd) = path.nodes(nd).state(2);
+    th(nd) = path.nodes(nd).state(3);
+    dx(nd) = path.nodes(nd).state(4);
+    dy(nd)  = path.nodes(nd).state(5);
+    dth(nd) = path.nodes(nd).state(6);
+    v(nd) = path.nodes(nd).state(7);
+        
+
+    if (nd < path.path_size)
+        u(nd,1) = path.nodes(nd).control(1);
+        u(nd,2) = path.nodes(nd).control(2);
+    else
+        u(nd,1) = NaN;
+        u(nd,2) = NaN;
+    end
+end
+
+figure
+
+% Plot X vs T
+subplot(2,2,[1 3])
+plot(x,y)
+title("Position")
+xlabel("x (m)")
+ylabel("y (m)")
+
+
+% Plot V vs T
+%subplot(2,2,2)
+%plot(t,v)
+%title("Velocity")
+%xlabel("Time (s)")
+%ylabel("V (m/s)")
+
+% Plot U vs T
+%subplot(2,2,4)
+%plot(t,u)
+%title("Control")
+%xlabel("Time (s)")
+%ylabel("U (m/s^2)")
+
+%% State space
+
+x_all = zeros(1, nodes.buffer_size);
+y_all = zeros(1, nodes.buffer_size);
+for nd = 1:nodes.buffer_size
+    x_all(nd) = nodes.nodes(nd).state(1);
+    y_all(nd) = nodes.nodes(nd).state(2);
+end
+
+% Plot V vs X
+figure
+hold on
+grid on
+plot(x_all, y_all, 'ob','MarkerSize',2);
+
+plot(x,y,'-g','LineWidth',5)
+xlabel("X");
+ylabel("Y");
+axis([-15 15 -5 5])
+keyboard()
+%% Time heuristic
+
+v_opt = linspace(-15, 15, 100);
+x_opt = -v_opt.*abs(v_opt)./(2*max(u));
+
+plot(x_opt, v_opt, '--k')

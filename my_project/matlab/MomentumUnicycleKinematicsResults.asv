@@ -1,0 +1,94 @@
+% Momentum
+
+
+close all
+
+stats = sbmpo_stats("/home/camilo/Desktop/sbmpo-momentum/my_project_ws/my_project/csv/stats.csv");
+[path, nodes] = sbmpo_results("/home/camilo/Desktop/sbmpo-momentum/my_project_ws/my_project/csv/nodes.csv");
+%% Path
+
+t = zeros(1, path.path_size);
+x = zeros(1, path.path_size);
+y = zeros(1, path.path_size);
+th = zeros(1, path.path_size);
+
+
+u = zeros(2, path.path_size-1);
+for nd = 1:path.path_size
+    t(nd) = path.nodes(nd).g;
+    x(nd) = path.nodes(nd).state(1);
+    y(nd) = path.nodes(nd).state(2);
+    th(nd) = path.nodes(nd).state(3);
+        
+
+    if (nd < path.path_size)
+        u(nd,1) = path.nodes(nd).control(1);
+        u(nd,2) = path.nodes(nd).control(2);
+    else
+        u(nd,1) = NaN;
+        u(nd,2) = NaN;
+    end
+end
+
+figure
+
+% Plot X vs T
+%subplot(2,2,[1 3])
+plot(x,y,'r','LineWidth',2.5)
+title("Position")
+xlabel("x (m)")
+ylabel("y (m)")
+axis equal
+grid on
+
+
+
+
+
+%% State space
+
+x_all = zeros(1, nodes.buffer_size);
+y_all = zeros(1, nodes.buffer_size);
+
+%v_all = zeros(1, nodes.buffer_size);
+for nd = 1:nodes.buffer_size
+    x_all(nd) = nodes.nodes(nd).state(1);
+    y_all(nd) = nodes.nodes(nd).state(2);
+end
+
+
+hold on
+grid on
+plot(x_all, y_all, 'ob','MarkerSize',2);
+hold on
+plot(x,y,'r','LineWidth',2.5)
+
+% plot obstacle
+
+r = 2;
+x_obs = 6;
+y_obs = 3;
+th = 0:0.01:2*pi;
+xx_obs = r*cos(th) + x_obs;
+yy_obs = r*sin(th) + y_obs;
+hold on
+fill(xx_obs,yy_obs,'k')
+
+
+%% draw mobility challenge
+xx_challenge = [3 3 8.5 8.5];
+
+
+keyboard()
+%plot(x,v,'-g','LineWidth',5)
+%xlabel("X");
+%ylabel("V");
+%title("State space");
+%axis([-15 15 -5 5])
+
+%% Time heuristic
+
+v_opt = linspace(-15, 15, 100);
+x_opt = -v_opt.*abs(v_opt)./(2*max(u));
+
+plot(x_opt, v_opt, '--k')
